@@ -2,11 +2,26 @@
 FROM alpine:3.15
 LABEL maintainer "Takahiro INOUE <github.com/hinata>"
 
-ENV NGINX_VERSION 1.21.6
+ARG SWISSRE_CA=/home/${USER}/swissre_ca.pem
+
+
+ENV NGINX_VERSION=1.21.6
+ENV https_proxy=http://gate-zrh.swissre.com:9443
+ENV http_proxy=http://gate-zrh.swissre.com:8080
+ENV REQUESTS_CA_BUNDLE=${SWISSRE_CA}
+ENV NODE_EXTRA_CA_CERTS=${SWISSRE_CA}
 
 ##
 # dependent packages for docker build
 ##
+RUN mkdir -p /usr/local/share/ca-certificates && wget -qP /usr/local/share/ca-certificates http://pki.swissre.com/aia/SwissReRootCA2.crt \
+    && wget -qP /usr/local/share/ca-certificates http://pki.swissre.com/aia/SwissReSystemCA22.crt \
+    && wget -qP /usr/local/share/ca-certificates http://pki.swissre.com/aia/SwissReSystemCA25.crt \
+    && cat /usr/local/share/ca-certificates/SwissReRootCA2.crt  /usr/local/share/ca-certificates/SwissReSystemCA22.crt \
+    /usr/local/share/ca-certificates/SwissReSystemCA25.crt > /home/$USER/swissre_ca.pem && \
+    cat /home/$USER/swissre_ca.pem >> /etc/ssl/certs/ca-certificates.crt
+    # && update-ca-certificates
+
 
 WORKDIR /tmp
 
